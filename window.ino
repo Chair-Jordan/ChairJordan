@@ -1,3 +1,7 @@
+/*
+ * Logic for sliding windows used to get average of several readings of the sensors
+*/
+
 #include "window.h"
 
 int32_t window_avg(int32_t *win, int size) {

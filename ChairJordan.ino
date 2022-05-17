@@ -1,3 +1,8 @@
+/*
+ * This file contains the main logic for the micro controller
+ * 
+ */
+
 #include "capacitance.h"
 #include "weight.h"
 #include "comms.h"
@@ -9,11 +14,11 @@
 #define WEIGHT_READ_TIMEOUT 1000
 #define WEIGHT_CAL_CNT      20
 
-#define LED 19
+#define PIN_LED 19
 
 void setup() {
   Serial.begin(9600);
-  pinMode(LED, OUTPUT);
+  pinMode(PIN_LED, OUTPUT);
 
   cap_setup();
   cap_recalibrate(CAP_CAL_CNT, CAP_READ_TIMEOUT);
@@ -26,7 +31,7 @@ void setup() {
 
   comms_setup();
 }
-
+// Main loop for the micro controller
 void loop() {
   uint32_t timestamp = micros();
   int32_t cap = cap_read(CAP_READ_TIMEOUT);
