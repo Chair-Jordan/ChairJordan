@@ -40,7 +40,7 @@ void loop() {
   Serial.printf("time: %ld, cap: %ld, weight: %ld\n", timestamp, cap, weight);
   Serial.println(weight);
 
-  blink(LED, 200);
+  blink(PIN_LED, 200);
 }
 
 void blink(int pin, int ms) {
