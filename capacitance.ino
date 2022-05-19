@@ -30,7 +30,8 @@ int32_t cap_read_once(uint32_t timeout) {
   float RC = (-(float)diff)/(logf((CAP_VREF - CAP_VCC)/(CAP_V0 - CAP_VCC)));
   RC *= 1000000; // us -> s
   int32_t C = RC/(float)CAP_R;
-  Serial.printf("raw C: %ld\n", C);
+  Serial.printf("C: %ld\n", C - CAP_OVERHEAD);
+  Serial.flush();
 
   return C - CAP_OVERHEAD;
 }
@@ -39,11 +40,13 @@ int32_t cap_read_once(uint32_t timeout) {
 int32_t cap_read(uint32_t timeout) {
   int32_t C = cap_read_once(timeout);
   window_insert(CAP_WINDOW, CAP_WINDOW_SIZE, C);
+  /*
   Serial.println("Cap window");
   for (int i = 0; i < CAP_WINDOW_SIZE; i++)
     Serial.printf("%ld ", CAP_WINDOW[i]);
   Serial.println("");
   Serial.printf("cap zero: %ld\n", CAP_OVERHEAD);
+  */
   return window_avg(CAP_WINDOW, CAP_WINDOW_SIZE);
 }
 

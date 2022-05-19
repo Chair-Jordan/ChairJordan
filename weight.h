@@ -3,8 +3,8 @@ extern "C" {
 #endif
 #include <stdint.h>
 
-#define PIN_WEIGHT_SCK 20 // Clock pin for HX711 module
-#define PIN_WEIGHT_DT 21 // Data pin for HX711 module
+#define PIN_WEIGHT_SCK 13 // Clock pin for HX711 module
+#define PIN_WEIGHT_DT 12 // Data pin for HX711 module
 #define WEIGHT_WINDOW_SIZE 10 // Size of sliding window
 
 void weight_setup(void);

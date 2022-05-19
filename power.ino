@@ -8,10 +8,8 @@
 // Initialize RTC (Clock)
 void RTC_init(void)
 {
-  while (RTC.STATUS > 0)
-  {
-    ;                                   // Wait for all register to be synchronized
-  }
+  while (RTC.STATUS > 0){;} // Wait for all register to be synchronized
+  
   RTC.CLKSEL = RTC_CLKSEL_INT32K_gc;    // 32.768kHz Internal Ultra-Low-Power Oscillator (OSCULP32K)
   RTC.PITINTCTRL = RTC_PI_bm;           // PIT Interrupt: enabled 
   RTC.PITCTRLA = 0xF0 | RTC_PITEN_bm; // set prescale and enable clock. Prescale is 1/32768
@@ -24,25 +22,47 @@ ISR(RTC_PIT_vect)
 }
 
 // Initialize power saving stuff
-void power_init() {
+void pwr_init() {
   set_sleep_mode(SLEEP_MODE_PWR_DOWN); // Set which sleep mode to use
-  sleep_enable(); // Enable the sleep function
   RTC_init(); // Initialize the RTC timer
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // Set sleep mode to POWER DOWN mode
   sleep_enable(); // Enable sleep_cpu()
+  pinMode(PIN_RADIO_RESET, OUTPUT);
+  pwr_RF_sleep();
 }
 
-// Set unused pins to output
-void init_pins() {
-  pinMode(1, OUTPUT);
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  for (i = 8; i <= 17; i++)
-    pinMode(i, OUTPUT); 
+// Wake and sleep radio by setting reset pin to high/low
+void pwr_RF_sleep() {
+  radio.sleep();
+  digitalWrite(PIN_RADIO_RESET, HIGH);
+}
+void pwr_RF_wake() {
+  digitalWrite(PIN_RADIO_RESET, LOW);
+}
+// Sleep for amount amount of interrupts
+void pwr_cpu_sleep(int amount) {
+  int i = amount;
+  while(i >= 0) {
+    sleep_cpu();
+    i = i - 1;
+  }
+}
+static bool pwr_check_over_threshold(int capacitance, int weight) {
+  return (cap_read_once(CAP_READ_TIMEOUT) > capacitance | weight_read_hx711() > weight);
+}
+// Check against threshold three times, if all are above return true
+bool pwr_should_sleep(int cycles) {
+  for(int i = 0; i < 3; i++) {
+    if (!pwr_check_over_threshold(CAP_WAKEUP_VAL, WEIGHT_WAKEUP_VAL)) // Check red value against threshold
+      return true;
+    pwr_cpu_sleep(cycles); // If not over threshold sleep and try again
+  }
+  return false;
 }
 
-// Sleep for 1 interrupt
-void sleep() {
-	Serial.flush();
-	sleep_cpu();
+// Idle and make measurment every cycles interrupt (one is about 1 second I think, double check this)
+// Return when a value above threshold is measured
+void pwr_idle(int cycles) {
+  while(pwr_should_sleep(cycles)) {
+    pwr_cpu_sleep(cycles);
+  }
 }

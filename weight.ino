@@ -39,14 +39,15 @@ int32_t weight_read_hx711(void) {
     weight <<= 1;
     weight |= weight_read_bit();
   }
-  Serial.printf("weight: %ld\n", weight);
+  //Serial.printf("weight: %ld\n", weight);
   // Skip uneccesary bits
   for (int i = 0; i < HX711_GAIN; i++) {
     weight_read_bit();
   }
 
   weight ^= 0x800000; // Invert the value
-  Serial.printf("weight: %ld\n", weight);
+  Serial.printf("W: %ld\n", weight - WEIGHT_ZERO);
+  Serial.flush();
 
   return weight - WEIGHT_ZERO;
 }
@@ -66,10 +67,12 @@ void weight_recalibrate(int measurements, uint32_t timeout) {
 int32_t weight_read(uint32_t timeout) {
   int32_t weight = weight_read_hx711();
   window_insert(WEIGHT_WINDOW, WEIGHT_WINDOW_SIZE, weight);
+  /*
   Serial.println("Weight window");
   for (int i = 0; i < WEIGHT_WINDOW_SIZE; i++)
     Serial.printf("%ld ", WEIGHT_WINDOW[i]);
   Serial.println("");
   Serial.printf("zero: %ld\n", WEIGHT_ZERO);
+  */
   return window_avg(WEIGHT_WINDOW, WEIGHT_WINDOW_SIZE);
 }
